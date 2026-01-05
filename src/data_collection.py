@@ -275,7 +275,7 @@ def main():
     Main function to collect data
     """
     # Initializing collector
-    collector = GoogleBooksCollector(api_key='AIzaSyBfBufhUID3sJ80UGfAL810_gs1EzjoyGk')
+    collector = GoogleBooksCollector(api_key=config.GOOGLE_BOOKS_API_KEY)
 
     print("Starting data collection...")
     
