@@ -10,7 +10,7 @@ class KNNRecommender:
     K-Nearest Neighbors model for book recommendation
     """
 
-    def __init__(self,n_neighbors=5,metric='cosine',algorithm='brute'):
+    def __init__(self,n_neighbors=15,metric='cosine',algorithm='brute'):
 
         self.n_neighbors=n_neighbors
         self.metric=metric
@@ -21,7 +21,11 @@ class KNNRecommender:
             n_jobs=-1  # Using all available CPU cores
         )
 
-        self.vectorizer=TfidfVectorizer(max_features=config.FEATURE_CONFIG['max_features'])
+        self.vectorizer=TfidfVectorizer(max_features=config.FEATURE_CONFIG['max_features'],
+                                        ngram_range=config.FEATURE_CONFIG.get('ngram_range', (1,2)),
+                                        min_df=config.FEATURE_CONFIG.get('min_df', 3),
+                                        max_df=config.FEATURE_CONFIG.get('max_df', 0.8),
+                                        sublinear_tf=True)
         self.is_trained=False
 
     

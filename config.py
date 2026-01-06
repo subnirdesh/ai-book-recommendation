@@ -36,7 +36,7 @@ MODEL_CONFIG = {
     'knn': {
         'name': 'K-Nearest Neighbors',
         'model_path': MODEL_DIR / 'knn.pkl',
-        'n_neighbors': 5
+        'n_neighbors': 15
     },
     'logistic_regression': {
         'name': 'Logistic Regression',
@@ -60,8 +60,12 @@ class Config:
 FEATURE_CONFIG = {
     'text_features': ['title', 'authors', 'categories'],
     'numerical_features': ['average_rating', 'ratings_count'],
-    'max_features': 5000  # for TF-IDF
+    'max_features': 10000,  # for TF-IDF
+    'ngram_range': (1, 2),      # unigrams + bigrams
+    'min_df': 3,                # ignoring terms appearing in less than 2 documents
+    'max_df': 0.8               # ignoring terms appearing in more than 80% of documents
 }
+
 
 # Train/test split
 TEST_SIZE = 0.2

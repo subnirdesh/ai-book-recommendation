@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Book Recommendation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            padding: 40px;
+        }
+        
+        h1 {
+            color: #667eea;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+        
+        .input-section {
+            margin-bottom: 30px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 10px;
+            color: #333;
+            font-weight: 600;
+            font-size: 1.1em;
+        }
+        
+        textarea {
+            width: 100%;
+            padding: 15px;
+            border: 2px solid #ddd;
+            border-radius: 10px;
+            font-size: 16px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 100px;
+            transition: border-color 0.3s;
+        }
+        
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .model-selection {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+        
+        .model-btn {
+            flex: 1;
+            min-width: 150px;
+            padding: 15px 20px;
+            border: 2px solid #667eea;
+            background: white;
+            color: #667eea;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 600;
+            transition: all 0.3s;
+        }
+        
+        .model-btn:hover {
+            background: #667eea;
+            color: white;
+            transform: translateY(-2px);
+        }
+        
+        .model-btn.active {
+            background: #667eea;
+            color: white;
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 18px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        
+        .compare-btn {
+            width: 100%;
+            padding: 15px;
+            background: white;
+            color: #667eea;
+            border: 2px solid #667eea;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s;
+        }
+        
+        .compare-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+        
+        .results {
+            margin-top: 40px;
+            display: none;
+        }
+        
+        .results.show {
+            display: block;
+        }
+        
+        .results-header {
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 3px solid #667eea;
+        }
+        
+        .result-item {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .category-name {
+            font-size: 1.3em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .confidence-bar {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+            position: relative;
+        }
+        
+        .confidence-fill {
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding-right: 10px;
+        }
+        
+        .confidence-text {
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .loading.show {
+            display: block;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        
+        .model-result {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            border-top: 4px solid #667eea;
+        }
+        
+        .model-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+        
+        .mini-result {
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+        }
+        
+        .mini-category {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+        
+        .mini-confidence {
+            font-size: 0.9em;
+            color: #666;
+        }
+        
+        .examples {
+            background: #f0f4ff;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .examples h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+        }
+        
+        .example-item {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .example-item:hover {
+            background: #667eea;
+            color: white;
+            transform: translateX(5px);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>📚 Book Recommendation System</h1>
+        <p class="subtitle">AI-Powered Book Category Recommendations</p>
+        
+        <div class="examples">
+            <h3>💡 Try these examples:</h3>
+            <div class="example-item" onclick="fillExample('science fiction space adventure with aliens and robots')">
+                "science fiction space adventure with aliens and robots"
+            </div>
+            <div class="example-item" onclick="fillExample('detective mystery murder investigation crime solving')">
+                "detective mystery murder investigation crime solving"
+            </div>
+            <div class="example-item" onclick="fillExample('business leadership management and entrepreneurship')">
+                "business leadership management and entrepreneurship"
+            </div>
+            <div class="example-item" onclick="fillExample('fantasy magic wizards dragons epic adventure')">
+                "fantasy magic wizards dragons epic adventure"
+            </div>
+        </div>
+        
+        <div class="input-section">
+            <label for="userInput">Describe the book you're looking for:</label>
+            <textarea id="userInput" placeholder="E.g., 'science fiction adventure with space travel and aliens' or 'historical fiction about world war 2'"></textarea>
+        </div>
+        
+        <div class="input-section">
+            <label>Select AI Model:</label>
+            <div class="model-selection">
+                <button class="model-btn active" data-model="naive_bayes">Naive Bayes</button>
+                <button class="model-btn" data-model="knn">K-Nearest Neighbors</button>
+                <button class="model-btn" data-model="logistic_regression">Logistic Regression</button>
+            </div>
+        </div>
+        
+        <button class="submit-btn" onclick="getRecommendations()">Get Recommendations</button>
+        <button class="compare-btn" onclick="compareAllModels()">Compare All Models</button>
+        
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p>Getting recommendations...</p>
+        </div>
+        
+        <div class="results" id="results">
+            <div class="results-header">
+                <h2>📖 Recommended Categories</h2>
+                <p id="queryDisplay"></p>
+                <p id="modelDisplay"></p>
+            </div>
+            <div id="recommendations"></div>
+        </div>
+    </div>
+    
+    <script>
+        let selectedModel = 'naive_bayes';
+        
+        // Model selection
+        document.querySelectorAll('.model-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.model-btn').forEach(b => b.classList.remove('active'));
+                this.classList.add('active');
+                selectedModel = this.dataset.model;
+            });
+        });
+        
+        // Fill example text
+        function fillExample(text) {
+            document.getElementById('userInput').value = text;
+        }
+        
+        // Get recommendations
+        async function getRecommendations() {
+            const userInput = document.getElementById('userInput').value.trim();
+            
+            if (!userInput) {
+                alert('Please enter some text describing your book preferences!');
+                return;
+            }
+            
+            // Show loading
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            
+            try {
+                const response = await fetch('/recommend', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        text: userInput,
+                        model: selectedModel,
+                        top_n: 5
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayResults(data);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error connecting to server: ' + error);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+        
+        // Display results
+        function displayResults(data) {
+            const modelNames = {
+                'naive_bayes': 'Naive Bayes',
+                'knn': 'K-Nearest Neighbors',
+                'logistic_regression': 'Logistic Regression'
+            };
+            
+            document.getElementById('queryDisplay').textContent = `Query: "${data.query}"`;
+            document.getElementById('modelDisplay').textContent = `Model: ${modelNames[data.model]}`;
+            
+            let html = '';
+            data.recommendations.forEach((rec, index) => {
+                html += `
+                    <div class="result-item">
+                        <div class="category-name">${index + 1}. ${rec.category}</div>
+                        <div class="confidence-bar">
+                            <div class="confidence-fill" style="width: ${rec.confidence_pct}%">
+                                <span class="confidence-text">${rec.confidence_pct.toFixed(1)}%</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            document.getElementById('recommendations').innerHTML = html;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // Compare all models
+        async function compareAllModels() {
+            const userInput = document.getElementById('userInput').value.trim();
+            
+            if (!userInput) {
+                alert('Please enter some text!');
+                return;
+            }
+            
+            document.getElementById('loading').classList.add('show');
+            document.getElementById('results').classList.remove('show');
+            
+            try {
+                const response = await fetch('/compare', {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({
+                        text: userInput,
+                        top_n: 3
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    displayComparison(data);
+                } else {
+                    alert('Error: ' + data.error);
+                }
+            } catch (error) {
+                alert('Error: ' + error);
+            } finally {
+                document.getElementById('loading').classList.remove('show');
+            }
+        }
+        
+        // Display comparison
+        function displayComparison(data) {
+            const modelNames = {
+                'naive_bayes': 'Naive Bayes',
+                'knn': 'K-Nearest Neighbors',
+                'logistic_regression': 'Logistic Regression'
+            };
+            
+            document.getElementById('queryDisplay').textContent = `Query: "${data.query}"`;
+            document.getElementById('modelDisplay').textContent = 'Comparing all models';
+            
+            let html = '<div class="comparison-grid">';
+            
+            for (const [modelKey, recommendations] of Object.entries(data.results)) {
+                html += `
+                    <div class="model-result">
+                        <div class="model-title">${modelNames[modelKey]}</div>
+                `;
+                
+                recommendations.forEach((rec, index) => {
+                    html += `
+                        <div class="mini-result">
+                            <div class="mini-category">${index + 1}. ${rec.category}</div>
+                            <div class="mini-confidence">${rec.confidence_pct.toFixed(1)}% confidence</div>
+                        </div>
+                    `;
+                });
+                
+                html += '</div>';
+            }
+            
+            html += '</div>';
+            
+            document.getElementById('recommendations').innerHTML = html;
+            document.getElementById('results').classList.add('show');
+        }
+        
+        // Allow Enter key to submit
+        document.getElementById('userInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                getRecommendations();
+            }
+        });
+    </script>
+</body>
+</html>

@@ -226,6 +226,9 @@ class LogisticRegressionRecommender:
             'is_trained': self.is_trained
         }
 
+        joblib.dump(model_data, filename)
+        print(f"Model saved to {filename}")
+
 
     def load_model(self, filename=None):
         """Loads trained model from disk"""

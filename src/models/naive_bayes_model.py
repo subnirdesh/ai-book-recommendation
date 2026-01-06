@@ -19,7 +19,11 @@ class NaiveBayesRecommender:
 
         self.model = MultinomialNB()
         self.vectorizer = TfidfVectorizer(
-            max_features=config.FEATURE_CONFIG['max_features']
+            max_features=config.FEATURE_CONFIG['max_features'],
+            ngram_range=config.FEATURE_CONFIG['ngram_range'],
+            min_df=config.FEATURE_CONFIG['min_df'],
+            max_df=config.FEATURE_CONFIG['max_df'],
+            sublinear_tf=True  # Using log scaling
         )
 
         self.is_trained = False
