@@ -1,11 +1,13 @@
 {
-  "Arts": 0,
-  "Biography": 1,
-  "Business": 2,
-  "Fiction": 3,
-  "General": 4,
+  "Biography & Autobiography": 0,
+  "Business & Economics": 1,
+  "Computers": 2,
+  "Education": 3,
+  "Fiction": 4,
   "History": 5,
-  "Science": 6,
-  "Technology": 7,
-  "Young Adult": 8
+  "Juvenile Fiction": 6,
+  "Language Arts & Disciplines": 7,
+  "Literary Criticism": 8,
+  "Philosophy": 9,
+  "Science": 10
 }

@@ -20,9 +20,17 @@ class LogisticRegressionRecommender:
             solver=solver,
             multi_class=multi_class,
             random_state=config.RANDOM_STATE,
-            n_jobs=-1  # Using all CPU cores
+            n_jobs=-1,  # Using all CPU cores
+            C=1.0,  # Regularization strength
+            class_weight='balanced'  # Handling class imbalance
         )
-        self.vectorizer = TfidfVectorizer(max_features=config.FEATURE_CONFIG['max_features'])
+        self.vectorizer = TfidfVectorizer(
+            max_features=config.FEATURE_CONFIG['max_features'],
+            ngram_range=config.FEATURE_CONFIG['ngram_range'],
+            min_df=config.FEATURE_CONFIG['min_df'],
+            max_df=config.FEATURE_CONFIG['max_df'],
+            sublinear_tf=True
+        )
         self.is_trained = False
 
 

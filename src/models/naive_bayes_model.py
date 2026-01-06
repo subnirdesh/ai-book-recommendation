@@ -11,27 +11,24 @@ class NaiveBayesRecommender:
     Naive Bayes model for book recommendation
     """
 
-    def __init__(self,model_type='multinomial'):
-        self.model_type=model_type
-        if model_type=='multinomial':
-            self.model=MultinomialNB()
-            self.vectorizer=TfidfVectorizer(max_features=config.FEATURE_CONFIG['max_features'])
-        else:
-            self.model=GaussianNB()
-            self.vectorizer=None
+    def __init__(self, model_type='multinomial'):
+        self.model_type = model_type
 
-        self.is_trained=False
+        if model_type != 'multinomial':
+            raise ValueError("Only MultinomialNB is supported for text data")
+
+        self.model = MultinomialNB()
+        self.vectorizer = TfidfVectorizer(
+            max_features=config.FEATURE_CONFIG['max_features']
+        )
+
+        self.is_trained = False
 
 
-    def prepare_text_features(self,X):
-        """Converting text to TF-IDF features"""
-        if self.model_type=='multinomial':
-            if not self.is_trained:
-                X_vectorized=self.vectorizer.fit_transform(X)
-            else:
-                X_vectorized=self.vectorizer.transform(X)
-        
-        return X
+    def prepare_text_features(self, X, fit=False):
+        if fit:
+            return self.vectorizer.fit_transform(X)
+        return self.vectorizer.transform(X)
     
 
     def train(self,X_train,y_train):
@@ -43,10 +40,10 @@ class NaiveBayesRecommender:
             y_train: Training labels
         """
 
-        print(f"Training {self.model_type} Naive Bayes model...")
+        print(f"Training Naive Bayes model...")
 
         # Preparing features 
-        X_train_processed=self.prepare_text_features(X_train)
+        X_train_processed=self.prepare_text_features(X_train,fit=True)
 
         # Training the model 
         self.model.fit(X_train_processed,y_train)

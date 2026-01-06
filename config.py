@@ -1,5 +1,9 @@
 import os
 from pathlib import Path
+from dotenv import load_dotenv
+
+
+load_dotenv()
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent
@@ -15,6 +19,13 @@ MODEL_DIR = BASE_DIR / 'trained_models'
 # Creating directories if they don't exist
 for directory in [DATA_DIR, RAW_DATA_DIR, PROCESSED_DATA_DIR, MODEL_DIR]:
     directory.mkdir(parents=True, exist_ok=True)
+
+
+# GOOGLE API KEY CONFIG
+GOOGLE_BOOKS_API_KEY = os.environ.get('GOOGLE_BOOKS_API_KEY')
+if not GOOGLE_BOOKS_API_KEY:
+    raise ValueError("Google Books API key not set. Please set GOOGLE_BOOKS_API_KEY environment variable.")
+
 
 # Model configurations
 MODEL_CONFIG = {

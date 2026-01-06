@@ -107,117 +107,81 @@ class BookPreProcessor:
         print("\n Missing value handled")
         return df
     
-    def filter_quality_books(self,df):
-        """
-        Filter out low-quality book entries
-        
-        Args:
-            df: Input DataFrame
-            
-        Returns:
-            Filtered DataFrame
-        """
 
-        print("\n Filtering qiality books ... ")
-        original_count=len(df)
+    def infer_unknown_categories(self, df):
+        """
+        Infers main_category for books labeled 'Unknown' using all_categories, title, description (v5)
+        Goal: minimize 'General', get 8–10 usable categories.
+        """
+        print("\nInferring Unknown categories ...")
+        df = df.copy()
 
-        # Removing books without essentail information 
-        df=df[
-             (df['title'].str.len()> 0)&
-             (df['authors'].str.len()> 0)&
-             (df['description'].str.len()> 50)&
-             (df['main_category'] !='Unknown')
+        # Standard category keywords
+        CATEGORY_KEYWORDS = {
+            'Fiction': ['fiction', 'novel', 'literature'],
+            'Science Fiction': ['science fiction', 'sci-fi', 'scifi', 'dystopia'],
+            'Fantasy': ['fantasy', 'magic', 'wizard', 'dragon'],
+            'Mystery': ['mystery', 'detective', 'crime'],
+            'Thriller': ['thriller', 'suspense'],
+            'Romance': ['romance', 'love', 'relationship'],
+            'Horror': ['horror', 'ghost', 'vampire', 'zombie'],
+            'Biography': ['biography', 'memoir', 'autobiography'],
+            'History': ['history', 'historical', 'war', 'civilization'],
+            'Science': ['science', 'physics', 'chemistry', 'biology', 'scientific'],
+            'Technology': ['technology', 'computer', 'programming', 'engineering'],
+            'Self-Help': ['self-help', 'personal development', 'motivation'],
+            'Business': ['business', 'economics', 'finance', 'management'],
+            'Young Adult': ['juvenile', 'young adult', 'ya', 'teen']
+        }
+
+        def infer_category(row):
+            # Combining text sources
+            text_fields = [
+                str(row.get('main_category', '')),
+                str(row.get('all_categories', '')),
+                str(row.get('title', '')),
+                str(row.get('description', ''))
+            ]
+            text = ' '.join(text_fields).lower()
+
+            # Matching categories
+            for cat, keywords in CATEGORY_KEYWORDS.items():
+                if any(k in text for k in keywords):
+                    return cat
+
+            # Minimal fallback
+            return 'Other'
+
+        df['main_category'] = df.apply(lambda row: infer_category(row) 
+                                    if str(row.get('main_category', '')).lower() == 'unknown' else row['main_category'], axis=1)
+
+        print("Unknown categories inferred.")
+        return df
+
+
+    
+    def filter_quality_books(self, df):
+        """
+        Filters out low-quality book entries (v4)
+        """
+        print("\nFiltering quality books ...")
+
+
+        original_count = len(df)
+
+        df = df[
+            (df['title'].str.len() > 0) &
+            (df['authors'].str.len() > 0) &
+            (df['description'].str.len() > 50) &
+            (df['main_category'].str.lower() != 'unknown')
         ].copy()
 
-        removed= original_count-len(df)
-        print(f" Removed {removed} low-qulaity entries")
-        print(f" Remianing {len(df)} books")
 
-        return df
-    
-    def clean_categories(self,df):
+        removed = original_count - len(df)
 
-        """
-        Clean and standardize category names - ENHANCED for Google Books
-        
-        Args:
-            df: Input DataFrame
-            
-        Returns:
-            DataFrame with cleaned categories
-        """
+        print(f"Removed {removed} low-quality entries")
+        print(f"Remaining {len(df)} books")
 
-        print("\nCleaning and consolidating categories...")
-        print(f"Original categories: {df['main_category'].nunique()}")
-
-        df=df.copy()
-
-        # Converting to lowercase for matching 
-        df['main_category'] = df['main_category'].str.lower()
-
-
-        def categorize_book(category):
-            category =str(category).lower()
-
-
-            # Fiction generes 
-        
-            if any(word in category for word in ['fiction', 'novel']):
-                if any(word in category for word in ['science fiction', 'sci-fi', 'scifi']):
-                    return 'Science Fiction'
-                elif any(word in category for word in ['fantasy', 'magic', 'wizard']):
-                    return 'Fantasy'
-                elif any(word in category for word in ['mystery', 'detective', 'crime']):
-                    return 'Mystery'
-                elif any(word in category for word in ['thriller', 'suspense']):
-                    return 'Thriller'
-                elif any(word in category for word in ['romance', 'love']):
-                    return 'Romance'
-                elif any(word in category for word in ['horror', 'ghost']):
-                    return 'Horror'
-                elif any(word in category for word in ['juvenile', 'young adult', 'ya', 'teen']):
-                    return 'Young Adult'
-                else:
-                    return 'Fiction'
-                
-
-            # Non-fiction categories
-            elif any(word in category for word in ['biography', 'memoir', 'autobiography']):
-                    return 'Biography'
-            elif any(word in category for word in ['history', 'historical']):
-                    return 'History'
-            elif any(word in category for word in ['science', 'scientific']):
-                    return 'Science'
-            elif any(word in category for word in ['technology', 'computer', 'programming']):
-                    return 'Technology'
-            elif any(word in category for word in ['self-help', 'self help', 'personal development']):
-                    return 'Self-Help'
-            elif any(word in category for word in ['business', 'economics', 'finance', 'management']):
-                    return 'Business'
-            elif any(word in category for word in ['children', 'juvenile nonfiction', 'kids']):
-                    return 'Children'
-            elif any(word in category for word in ['poetry', 'poems']):
-                    return 'Poetry'
-            elif any(word in category for word in ['cooking', 'food', 'recipes']):
-                    return 'Cooking'
-            elif any(word in category for word in ['travel', 'tourism']):
-                    return 'Travel'
-            elif any(word in category for word in ['art', 'music', 'design']):
-                    return 'Arts'
-            elif any(word in category for word in ['religion', 'spiritual', 'philosophy']):
-                    return 'Religion & Philosophy'
-            else:
-                return 'General'
-         
-        # Applying categorization 
-        df['main_category']= df['main_category'].apply(categorize_book)
-
-        # Show category distribution
-        print(f"\nConsolidated to: {df['main_category'].nunique()} categories")
-        print("\nCategory distribution:")
-        print(df['main_category'].value_counts())
-
-        
         return df
     
 
@@ -470,29 +434,29 @@ def main():
         
         # Step 2: Handling missing values
         df = preprocessor.handle_missing_values(df)
-        
-        # Step 3: Filtering quality books
+
+        # Step 3a: Infering Unknown categories
+        df = preprocessor.infer_unknown_categories(df)
+
+        # Step 3b: Filtering quality books
         df = preprocessor.filter_quality_books(df)
         
-        # Step 4: Cleaning categories
-        df = preprocessor.clean_categories(df)
+        # Step 4: Balancing dataset
+        df = preprocessor.balance_dataset(df, min_samples_per_category=20)
         
-        # Step 5: Balancing dataset
-        df = preprocessor.balance_dataset(df, min_samples_per_category=30)
-        
-        # Step 6: Creating text features
+        # Step 5: Creating text features
         df = preprocessor.create_text_features(df)
         
-        # Step 7: Encoding labels
+        # Step 6: Encoding labels
         df = preprocessor.encode_label(df)
         
-        # Step 8: Splitting data
+        # Step 7: Splitting data
         train, val, test = preprocessor.split_data(df)
         
-        # Step 9: Saving processed data
+        # Step 8: Saving processed data
         preprocessor.save_processed_data(train, val, test)
         
-        # Step 10: Generateingsummary
+        # Step 9: Generateing summary
         preprocessor.get_preprocessing_summary(df)
         
         print("\n" + "="*50)

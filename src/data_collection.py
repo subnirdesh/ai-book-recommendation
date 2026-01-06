@@ -116,9 +116,10 @@ class GoogleBooksCollector:
             'thumbnail': thumbnail
         }
     
-    def collect_by_category(self, category, books_per_category=100):
+
+    def collect_by_category(self, category, books_per_category=200):
         """
-        Collects books from a specific category
+        Collects books from a specific category using multiple queries
         
         Args:
             category: Category to search for
@@ -129,43 +130,48 @@ class GoogleBooksCollector:
         """
         print(f"\nCollecting books from category: {category}")
         books = []
-        start_index = 0
+        seen_ids = set()
         
-        while len(books) < books_per_category:
-            # Searching with category
-            query = f"subject:{category}"
-            items = self.search_books(query, max_results=40, start_index=start_index)
-            
-            if not items:
-                print(f"No more results for {category}")
-                break
-            
-            # Extracting book info
-            for item in items:
-                if len(books) >= books_per_category:
-                    break
-                    
-                book_info = self.extract_book_info(item)
+        # Multiple query variations per category
+        queries = [
+            f"subject:{category}",
+            f"{category} books",
+            f"best {category}",
+            f"popular {category}",
+            f"{category} novel",
+            f"{category} literature"
+        ]
+        
+        for query in queries:
+            start_index = 0
+            while len(books) < books_per_category:
+                items = self.search_books(query, max_results=40, start_index=start_index)
+                if not items:
+                    break  # No more results for this query
                 
-                # Filtering out books without essential data
-                if (book_info['title'] and 
-                    book_info['authors'] and 
-                    book_info['description'] and
-                    len(book_info['description']) > 50):
-                    books.append(book_info)
+                for item in items:
+                    book_info = self.extract_book_info(item)
+                    if book_info['book_id'] not in seen_ids and book_info['title'] and book_info['authors']:
+                        books.append(book_info)
+                        seen_ids.add(book_info['book_id'])
+                        if len(books) >= books_per_category:
+                            break
+                
+                start_index += 40
+                time.sleep(0.5)  # Small delay between requests
+                
+                # API limit safety
+                if start_index > 1000:
+                    break  # Google Books API max ~1000 results per query
             
-            print(f"Collected {len(books)}/{books_per_category} books from {category}")
-            
-            start_index += 40
-            time.sleep(1)  # Rate limiting
-            
-            # Safety break
-            if start_index > 400:  # Max ~10 requests per category
-                break
+            print(f"Collected {len(books)}/{books_per_category} books so far (query='{query}')")
+            if len(books) >= books_per_category:
+                break  # Stop if target reached
         
         return books
-    
-    def collect_balanced_dataset(self, categories=None, books_per_category=100):
+
+
+    def collect_balanced_dataset(self, categories=None, books_per_category=150):
         """
         Collect a balanced dataset across multiple categories
         
@@ -177,45 +183,31 @@ class GoogleBooksCollector:
             DataFrame with collected books
         """
         if categories is None:
-            # Default balanced categories
             categories = [
-                'fiction',
-                'science fiction',
-                'fantasy',
-                'mystery',
-                'thriller',
-                'romance',
-                'horror',
-                'biography',
-                'history',
-                'science',
-                'technology',
-                'self-help',
-                'business',
-                'young adult',
-                'children',
-                'poetry'
+                'fiction', 'science fiction', 'fantasy', 'mystery', 'thriller', 
+                'romance', 'horror', 'biography', 'history', 'science', 
+                'technology', 'self-help', 'business', 'young adult',
+                'children', 'poetry', 'graphic novels', 'comics', 'travel'
             ]
         
-        print(f"Starting balanced data collection...")
+        print(f"\nStarting balanced data collection...")
         print(f"Categories: {len(categories)}")
         print(f"Target books per category: {books_per_category}")
-        print(f"Total target: {len(categories) * books_per_category}")
+        print(f"Total target: ~{len(categories) * books_per_category}")
         print("=" * 50)
         
         all_books = []
+        seen_ids = set()
         
         for category in categories:
             books = self.collect_by_category(category, books_per_category)
             all_books.extend(books)
+            seen_ids.update([b['book_id'] for b in books])
             print(f"Total collected so far: {len(all_books)}")
-            time.sleep(2)  # Rate limiting between categories
+            time.sleep(1)  # Delay between categories
         
-        # Creating DataFrame
-        df = pd.DataFrame(all_books)
-        
-        # Removing duplicates based on book_id
-        df = df.drop_duplicates(subset=['book_id'], keep='first')
+        # Create DataFrame and remove duplicates
+        df = pd.DataFrame(all_books).drop_duplicates(subset=['book_id'], keep='first')
         
         print("\n" + "=" * 50)
         print("Data Collection Complete!")
@@ -224,7 +216,8 @@ class GoogleBooksCollector:
         print(df['main_category'].value_counts())
         
         return df
-    
+
+
     def save_dataset(self, df, filename='google_books_dataset.csv'):
         """
         Save collected dataset to CSV
@@ -241,6 +234,8 @@ class GoogleBooksCollector:
         json_filepath = config.RAW_DATA_DIR / filename.replace('.csv', '.json')
         df.to_json(json_filepath, orient='records', indent=2)
         print(f"✓ Backup saved to: {json_filepath}")
+        
+    
     
     def get_collection_stats(self, df):
         """
@@ -300,7 +295,7 @@ def main():
     
     df = collector.collect_balanced_dataset(
         categories=categories,
-        books_per_category=150  # Adjusting number as per our need
+        books_per_category=250  # Adjusting number as per our need
     )
     
     # Getting statistics
@@ -312,10 +307,6 @@ def main():
     collector.save_dataset(df, filename)
     
     print("\n✓ Data collection complete!")
-    print("\nNext steps:")
-    print("1. Check the data in data/raw/")
-    print("2. Run data_preprocessing.py to clean the data")
-    print("3. Start training your models!")
 
 if __name__ == '__main__':
     main()
