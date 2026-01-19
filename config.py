@@ -45,17 +45,6 @@ MODEL_CONFIG = {
     }
 }
 
-# Flask configurations
-class Config:
-    SECRET_KEY = os.environ.get('SECRET_KEY') or 'dev-secret-key-change-in-production'
-    DEBUG = True
-    
-    # CORS settings for FYP integration
-    CORS_ORIGINS = [
-        'http://localhost:5173',  # React frontend
-        'http://localhost:8080',  # Spring Boot backend
-    ]
-
 # Feature engineering settings
 FEATURE_CONFIG = {
     'text_features': ['title', 'authors', 'categories'],

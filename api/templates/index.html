@@ -161,12 +161,48 @@
             border-bottom: 3px solid #667eea;
         }
         
-        .result-item {
-            background: #f8f9fa;
+        .book-card {
+            background: white;
             padding: 20px;
             border-radius: 10px;
             margin-bottom: 15px;
             border-left: 4px solid #667eea;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        
+        .book-title {
+            font-size: 1.2em;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .book-author {
+            color: #666;
+            font-size: 0.95em;
+            margin-bottom: 10px;
+        }
+        
+        .book-meta {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+        }
+        
+        .book-rating {
+            color: #f39c12;
+        }
+        
+        .book-category {
+            color: #667eea;
+            font-weight: 600;
+        }
+        
+        .book-description {
+            color: #666;
+            font-size: 0.9em;
+            line-height: 1.4;
         }
         
         .category-name {
@@ -294,41 +330,41 @@
 </head>
 <body>
     <div class="container">
-        <h1>📚 Book Recommendation System</h1>
-        <p class="subtitle">AI-Powered Book Category Recommendations</p>
+        <h1>📚 Mood-Aware Book Recommendation System</h1>
+        <p class="subtitle">AI-Powered Recommendations Based on Your Mood and Preferences</p>
         
         <div class="examples">
             <h3>💡 Try these examples:</h3>
-            <div class="example-item" onclick="fillExample('science fiction space adventure with aliens and robots')">
-                "science fiction space adventure with aliens and robots"
+            <div class="example-item" onclick="fillExample('I am feeling anxious, what should I read?')">
+                Use Case 1: "I am feeling anxious, what should I read?"
             </div>
-            <div class="example-item" onclick="fillExample('detective mystery murder investigation crime solving')">
-                "detective mystery murder investigation crime solving"
+            <div class="example-item" onclick="fillExample('I loved Gone Girl, what should I read next?')">
+                Use Case 2: "I loved Gone Girl, what should I read next?"
             </div>
-            <div class="example-item" onclick="fillExample('business leadership management and entrepreneurship')">
-                "business leadership management and entrepreneurship"
+            <div class="example-item" onclick="fillExample('I am feeling thoughtful and enjoyed The Alchemist')">
+                Use Case 3: "I am feeling thoughtful and enjoyed The Alchemist"
             </div>
-            <div class="example-item" onclick="fillExample('fantasy magic wizards dragons epic adventure')">
-                "fantasy magic wizards dragons epic adventure"
+            <div class="example-item" onclick="fillExample('I am bored and want something exciting')">
+                Mood: "I am bored and want something exciting"
             </div>
         </div>
         
         <div class="input-section">
-            <label for="userInput">Describe the book you're looking for:</label>
-            <textarea id="userInput" placeholder="E.g., 'science fiction adventure with space travel and aliens' or 'historical fiction about world war 2'"></textarea>
+            <label for="userInput">Tell us how you're feeling or what you like:</label>
+            <textarea id="userInput" placeholder="E.g., 'I'm feeling anxious' or 'I loved Gone Girl' or 'I'm thoughtful and enjoyed The Alchemist'"></textarea>
         </div>
         
         <div class="input-section">
             <label>Select AI Model:</label>
             <div class="model-selection">
-                <button class="model-btn active" data-model="naive_bayes">Naive Bayes</button>
+                <button class="model-btn active" data-model="hybrid">Hybrid (All 3 Combined)</button>
+                <button class="model-btn" data-model="naive_bayes">Naive Bayes</button>
                 <button class="model-btn" data-model="knn">K-Nearest Neighbors</button>
                 <button class="model-btn" data-model="logistic_regression">Logistic Regression</button>
             </div>
         </div>
         
         <button class="submit-btn" onclick="getRecommendations()">Get Recommendations</button>
-        <button class="compare-btn" onclick="compareAllModels()">Compare All Models</button>
         
         <div class="loading" id="loading">
             <div class="spinner"></div>
@@ -346,7 +382,7 @@
     </div>
     
     <script>
-        let selectedModel = 'naive_bayes';
+        let selectedModel = 'hybrid';
         
         // Model selection
         document.querySelectorAll('.model-btn').forEach(btn => {
@@ -367,7 +403,7 @@
             const userInput = document.getElementById('userInput').value.trim();
             
             if (!userInput) {
-                alert('Please enter some text describing your book preferences!');
+                alert('Please enter some text describing your mood or book preferences!');
                 return;
             }
             
@@ -382,7 +418,7 @@
                     body: JSON.stringify({
                         text: userInput,
                         model: selectedModel,
-                        top_n: 5
+                        top_n: 10
                     })
                 });
                 
@@ -403,104 +439,61 @@
         // Display results
         function displayResults(data) {
             const modelNames = {
+                'hybrid': 'Hybrid Ensemble (All 3 Models Combined)',
                 'naive_bayes': 'Naive Bayes',
                 'knn': 'K-Nearest Neighbors',
                 'logistic_regression': 'Logistic Regression'
             };
             
-            document.getElementById('queryDisplay').textContent = `Query: "${data.query}"`;
-            document.getElementById('modelDisplay').textContent = `Model: ${modelNames[data.model]}`;
-            
-            let html = '';
-            data.recommendations.forEach((rec, index) => {
-                html += `
-                    <div class="result-item">
-                        <div class="category-name">${index + 1}. ${rec.category}</div>
-                        <div class="confidence-bar">
-                            <div class="confidence-fill" style="width: ${rec.confidence_pct}%">
-                                <span class="confidence-text">${rec.confidence_pct.toFixed(1)}%</span>
-                            </div>
-                        </div>
-                    </div>
-                `;
-            });
-            
-            document.getElementById('recommendations').innerHTML = html;
-            document.getElementById('results').classList.add('show');
-        }
-        
-        // Compare all models
-        async function compareAllModels() {
-            const userInput = document.getElementById('userInput').value.trim();
-            
-            if (!userInput) {
-                alert('Please enter some text!');
-                return;
-            }
-            
-            document.getElementById('loading').classList.add('show');
-            document.getElementById('results').classList.remove('show');
-            
-            try {
-                const response = await fetch('/compare', {
-                    method: 'POST',
-                    headers: {'Content-Type': 'application/json'},
-                    body: JSON.stringify({
-                        text: userInput,
-                        top_n: 3
-                    })
-                });
-                
-                const data = await response.json();
-                
-                if (data.success) {
-                    displayComparison(data);
-                } else {
-                    alert('Error: ' + data.error);
-                }
-            } catch (error) {
-                alert('Error: ' + error);
-            } finally {
-                document.getElementById('loading').classList.remove('show');
-            }
-        }
-        
-        // Display comparison
-        function displayComparison(data) {
-            const modelNames = {
-                'naive_bayes': 'Naive Bayes',
-                'knn': 'K-Nearest Neighbors',
-                'logistic_regression': 'Logistic Regression'
+            const useCases = {
+                'USE_CASE_1_MOOD': 'Mood-driven Discovery',
+                'USE_CASE_2_PREFERENCE': 'Preference-based Recommendation',
+                'USE_CASE_3_COMBINED': 'Combined Mood & Preference',
+                'GENERAL_QUERY': 'General Query'
             };
             
-            document.getElementById('queryDisplay').textContent = `Query: "${data.query}"`;
-            document.getElementById('modelDisplay').textContent = 'Comparing all models';
+            let queryHtml = `Query: "${data.query}"`;
+            if (data.detected_moods && data.detected_moods.length > 0) {
+                queryHtml += `<br><small>Detected mood: ${data.detected_moods.join(', ')}</small>`;
+            }
+            if (data.use_case) {
+                queryHtml += `<br><small>Type: ${useCases[data.use_case]}</small>`;
+            }
             
-            let html = '<div class="comparison-grid">';
+            document.getElementById('queryDisplay').innerHTML = queryHtml;
+            document.getElementById('modelDisplay').innerHTML = 
+                `Model: ${modelNames[data.model]}<br><small>${data.explanation || ''}</small>`;
             
-            for (const [modelKey, recommendations] of Object.entries(data.results)) {
-                html += `
-                    <div class="model-result">
-                        <div class="model-title">${modelNames[modelKey]}</div>
-                `;
-                
-                recommendations.forEach((rec, index) => {
+            let html = '<h3 style="margin-bottom: 20px;">📚 Recommended Books for You:</h3>';
+            
+            // Display actual books
+            if (data.book_recommendations && data.book_recommendations.length > 0) {
+                data.book_recommendations.forEach((book, index) => {
+                    const stars = '⭐'.repeat(Math.round(book.rating));
                     html += `
-                        <div class="mini-result">
-                            <div class="mini-category">${index + 1}. ${rec.category}</div>
-                            <div class="mini-confidence">${rec.confidence_pct.toFixed(1)}% confidence</div>
+                        <div class="book-card">
+                            <div class="book-title">${index + 1}. ${book.title}</div>
+                            <div class="book-author">by ${book.authors}</div>
+                            <div class="book-meta">
+                                <span class="book-category">${book.category}</span>
+                                ${book.rating > 0 ? `<span class="book-rating">${stars} ${book.rating.toFixed(1)} (${book.ratings_count} ratings)</span>` : ''}
+                            </div>
+                            <div class="book-description">${book.description}</div>
+                            <div style="margin-top: 10px; font-size: 0.85em; color: #999;">
+                                Match confidence: ${(book.category_confidence * 100).toFixed(1)}%
+                            </div>
                         </div>
                     `;
                 });
-                
-                html += '</div>';
+            } else {
+                html += '<p>No book recommendations found. Try a different query!</p>';
             }
-            
-            html += '</div>';
             
             document.getElementById('recommendations').innerHTML = html;
             document.getElementById('results').classList.add('show');
         }
+        
+    
         
         // Allow Enter key to submit
         document.getElementById('userInput').addEventListener('keypress', function(e) {
