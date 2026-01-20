@@ -1,10 +1,6 @@
 # Book Recommendation System - AI Module
 
-**Course:** AI Module Coursework 2  
-**Student:** [Your Name]  
-**Submission Date:** January 7, 2025
-
-## 📋 Project Overview
+##  Project Overview
 
 This project implements a book recommendation system using three machine learning algorithms:
 1. **Naive Bayes** - Probabilistic classifier
@@ -13,7 +9,7 @@ This project implements a book recommendation system using three machine learnin
 
 The system is designed with modularity in mind, making it easy to integrate with the Final Year Project (FYP) that uses Spring Boot backend and React frontend.
 
-## 🏗️ Project Structure
+## Project Structure
 
 ```
 book-recommendation-ai/
@@ -40,7 +36,7 @@ book-recommendation-ai/
 └── README.md            # This file
 ```
 
-## 🚀 Setup Instructions
+## Setup Instructions
 
 ### Prerequisites
 - Python 3.8 or higher
@@ -85,7 +81,7 @@ title,authors,categories,average_rating,description
 "Harry Potter","J.K. Rowling","Fantasy",4.5,"A young wizard's journey"
 ```
 
-## 📊 Running the Project
+## Running the Project
 
 ### Option 1: Using Jupyter Notebook (Recommended for Development)
 ```bash
@@ -113,196 +109,7 @@ python api/app.py
 # API will be available at http://localhost:5000
 ```
 
-## 🔌 API Endpoints
-
-### GET `/`
-Returns API information and available endpoints.
-
-### GET `/health`
-Health check endpoint showing model status.
-
-### GET `/models`
-Lists all available models and their loading status.
-
-### POST `/recommend`
-Get book recommendations.
-
-**Request:**
-```json
-{
-  "text": "fantasy adventure magic",
-  "model": "naive_bayes",
-  "top_n": 5
-}
-```
-
-**Response:**
-```json
-{
-  "model_used": "naive_bayes",
-  "recommendations": [
-    {
-      "book_index": 42,
-      "confidence_score": 0.85
-    }
-  ],
-  "count": 5
-}
-```
-
-### POST `/predict`
-Predict book category.
-
-**Request:**
-```json
-{
-  "text": "A story about wizards and magic",
-  "model": "logistic_regression"
-}
-```
-
-**Response:**
-```json
-{
-  "model_used": "logistic_regression",
-  "prediction": 2,
-  "confidence": 0.87,
-  "all_probabilities": [0.05, 0.08, 0.87]
-}
-```
-
-### POST `/compare`
-Compare predictions from all models.
-
-**Request:**
-```json
-{
-  "text": "science fiction space exploration",
-  "top_n": 3
-}
-```
-
-## 🧪 Testing the API
-
-### Using cURL
-```bash
-# Get recommendations
-curl -X POST http://localhost:5000/recommend \
-  -H "Content-Type: application/json" \
-  -d '{"text": "fantasy adventure", "model": "naive_bayes", "top_n": 5}'
-
-# Check health
-curl http://localhost:5000/health
-```
-
-### Using Python
-```python
-import requests
-
-# Get recommendations
-response = requests.post(
-    'http://localhost:5000/recommend',
-    json={
-        'text': 'fantasy adventure magic',
-        'model': 'knn',
-        'top_n': 5
-    }
-)
-print(response.json())
-```
-
-## 📈 Model Performance
-
-After training, compare the three algorithms:
-- **Accuracy**: Overall correctness
-- **Precision**: Quality of positive predictions
-- **Recall**: Coverage of positive cases
-- **F1-Score**: Harmonic mean of precision and recall
-
-Results will be saved in `trained_models/model_comparison.csv` and visualized in `trained_models/comparison.png`.
-
-## 🔄 Integration with FYP
-
-### For Spring Boot Integration
-
-1. **Keep Flask API Running**
-   ```bash
-   python api/app.py
-   ```
-
-2. **Spring Boot Controller Example**
-   ```java
-   @RestController
-   @RequestMapping("/api/books")
-   public class BookController {
-       
-       private final RestTemplate restTemplate = new RestTemplate();
-       
-       @PostMapping("/recommend")
-       public ResponseEntity<?> getRecommendations(@RequestBody BookRequest request) {
-           String flaskUrl = "http://localhost:5000/recommend";
-           
-           Map<String, Object> requestBody = new HashMap<>();
-           requestBody.put("text", request.getText());
-           requestBody.put("model", "naive_bayes");
-           requestBody.put("top_n", 5);
-           
-           return restTemplate.postForEntity(flaskUrl, requestBody, Map.class);
-       }
-   }
-   ```
-
-3. **Enable CORS** (already configured in Flask)
-
-### Project Architecture for FYP
-```
-┌─────────────────┐
-│  React Frontend │
-│   (Port 3000)   │
-└────────┬────────┘
-         │ HTTP
-         ▼
-┌─────────────────┐
-│ Spring Boot API │
-│   (Port 8080)   │
-└────────┬────────┘
-         │ HTTP
-         ▼
-┌─────────────────┐
-│   Flask AI API  │
-│   (Port 5000)   │
-└─────────────────┘
-```
-
-## 📝 Submission Checklist
-
-- [x] Source code in organized structure
-- [x] Jupyter notebooks with experimentation
-- [x] Three trained models (Naive Bayes, KNN, Logistic Regression)
-- [x] Flask API for model serving
-- [x] Requirements.txt with all dependencies
-- [x] README with setup instructions
-- [x] Model comparison and evaluation
-- [x] Documentation and comments
-
-## 🔧 Troubleshooting
-
-### Issue: Models not loading in Flask
-**Solution:** Make sure you've trained and saved the models first by running the Jupyter notebook.
-
-### Issue: Import errors
-**Solution:** Make sure you're in the correct conda environment:
-```bash
-conda activate book-rec-ai
-```
-
-### Issue: Dataset not found
-**Solution:** Place your dataset in `data/raw/` and update the path in the notebook.
-
-### Issue: CORS errors from React
-**Solution:** The Flask API is already configured with CORS. Ensure React is running on port 3000.
-
-## 📚 Dependencies
+## Dependencies
 
 Main libraries used:
 - `scikit-learn` - Machine learning algorithms
@@ -315,36 +122,10 @@ Main libraries used:
 
 Full list in `requirements.txt`
 
-## 👨‍💻 Development
 
-### Running Tests
-```bash
-pytest tests/
-```
-
-### Adding New Features
-1. Create feature branch
-2. Implement changes
-3. Test thoroughly
-4. Commit and push
-
-### VS Code Setup
-Recommended extensions:
-- Python
-- Jupyter
-- Pylance
-- GitLens
-
-## 📧 Contact
-
-For questions or issues:
-- Email: [your.email@example.com]
-- GitHub Issues: [repo-url/issues]
-
-## 📄 License
+##  License
 
 This project is for academic purposes as part of AI Module Coursework.
 
 ---
 
-**Note:** This project is designed to be easily integrated into your FYP. Keep the Flask API as a microservice and connect it to your Spring Boot backend.
